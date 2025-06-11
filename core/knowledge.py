@@ -35,9 +35,10 @@ def _hash_embed(text: str, dim: int = 1536) -> List[float]:
 
 def _embed(text: str, dim: int = 1536) -> List[float]:
     try:
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        response = openai.Embedding.create(model=embedding_model, input=text)
-        return response["data"][0]["embedding"]
+        api_key = os.getenv("OPENAI_API_KEY")
+        client = openai.OpenAI(api_key=api_key)
+        response = client.embeddings.create(model=embedding_model, input=text)
+        return response.data[0].embedding
     except Exception as e:
         logging.error(f"OpenAI embedding failed: {e}")
         return _hash_embed(text, dim)
