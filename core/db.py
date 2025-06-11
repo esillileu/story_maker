@@ -178,6 +178,14 @@ def get_state(tl):
         })
 
 def get_latest_state():
+    if timeline_collection.count_documents({}) == 0:
+        return NarrativeState(
+            event="",
+            event_id=get_next_event_id(),
+            event_list=[],
+            story="",
+            story_id=get_next_timeline_id(),
+        )
     return get_state(get_latest_timeline_id())
 
 try:
