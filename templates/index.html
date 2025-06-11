@@ -21,14 +21,47 @@
         </ul>
     </div>
     <div id="chat">
+        <div id="lines">
         {% for msg in history %}
             <div class="line">{{ msg }}</div>
             {% if '"' in msg %}<div class="line">&nbsp;</div>{% endif %}
         {% endfor %}
+        </div>
         <form id="input-form" method="post" action="{{ url_for('send_message') }}">
-            <input name="message" style="width:80%" {% if input_disabled %}disabled{% endif %}>
-            <button type="submit" {% if input_disabled %}disabled{% endif %}>Send</button>
+            <input id="message" name="message" style="width:80%" {% if input_disabled %}disabled{% endif %}>
+            <button id="send" type="submit" {% if input_disabled %}disabled{% endif %}>Send</button>
         </form>
     </div>
+    <script>
+        const lines = document.getElementById('lines');
+        const input = document.getElementById('message');
+        const sendBtn = document.getElementById('send');
+        const evt = new EventSource("{{ url_for('stream', cursor=history|length) }}");
+        evt.addEventListener('message', (e) => {
+            const div = document.createElement('div');
+            div.className = 'line';
+            div.textContent = e.data;
+            lines.appendChild(div);
+            if (e.data.includes('"')) {
+                const br = document.createElement('div');
+                br.className = 'line';
+                br.innerHTML = '&nbsp;';
+                lines.appendChild(br);
+            }
+        });
+        evt.addEventListener('turn', (e) => {
+            const enable = e.data === 'user';
+            input.disabled = !enable;
+            sendBtn.disabled = !enable;
+        });
+        document.getElementById('input-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = new FormData(e.target);
+            input.disabled = true;
+            sendBtn.disabled = true;
+            fetch(e.target.action, {method:'POST', body:data});
+            e.target.reset();
+        });
+    </script>
 </body>
 </html>
