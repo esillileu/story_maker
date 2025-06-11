@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from core.state import Character, Event, Situation, Timeline, NarrativeState
 import logging
 
-cluster = 'test3'
+cluster = 'test4'
 mongo_cluster = MongoClient(os.getenv('MONGO_CLUSTER_URI'))
 characater_collection = mongo_cluster[cluster]['character']
 event_collection = mongo_cluster[cluster]['event']

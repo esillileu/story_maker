@@ -17,7 +17,7 @@ def _init_pinecone():
     api_key = os.getenv("PINECONE_API_KEY")
     environment = os.getenv("PINECONE_ENVIRONMENT")
     _pinecone = pincone(api_key=api_key, environment=environment)
-    pinecone_index = _pinecone.Index("test")
+    pinecone_index = _pinecone.Index("test1")
 
 
 embedding_model = "text-embedding-ada-002"
