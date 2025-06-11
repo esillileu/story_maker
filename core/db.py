@@ -9,6 +9,7 @@ characater_collection = mongo_cluster[cluster]['character']
 event_collection = mongo_cluster[cluster]['event']
 situation_collection = mongo_cluster[cluster]['situation']
 timeline_collection = mongo_cluster[cluster]['timeline']
+memory_collection = mongo_cluster[cluster]['memory']
 sample_data = {
     "_id": "narration_E_000",
     "generated_at" : "E_000", 
@@ -76,6 +77,19 @@ def store_timeline(timeline:Timeline):
     log = str(insert_result).replace("\n", "")
     logging.info(f"DB_stored: {insert_result.inserted_id}: {log}")
 
+def store_memory(timeline_id: str, memory: list):
+    memory_collection.update_one(
+        {"timeline_id": timeline_id},
+        {"$set": {"memory": memory, "timeline_id": timeline_id}},
+        upsert=True
+    )
+
+def get_memory(timeline_id: str) -> list:
+    doc = memory_collection.find_one({"timeline_id": timeline_id})
+    if doc:
+        return doc.get("memory", [])
+    return []
+
 def list_timelines():
     result = timeline_collection.find({}, {"timeline_id": 1})
     return [doc["timeline_id"] for doc in result]
@@ -138,13 +152,14 @@ def get_state(tl):
 
     event_id = timeline['timeline'][-1]
     event = event_collection.find_one({'event_id':event_id})
+    memory = get_memory(tl)
 
-    return NarrativeState(**{        
-            "event":event['event_summary'], 
-            'event_id':get_next_event_id(), 
-            'event_list':timeline['timeline'], 
-            'story':event['story_summary'], 
-            'story_id':get_next_timeline_id(), 
+    return NarrativeState(**{
+            "event":event['event_summary'],
+            'event_id':get_next_event_id(),
+            'event_list':timeline['timeline'],
+            'story':event['story_summary'],
+            'story_id':get_next_timeline_id(),
 
             'situation': "",
             'situation_id':"",
@@ -153,10 +168,11 @@ def get_state(tl):
             'turn':  "npc",
             
             'speaker': "", 
-            'speaker_character': None, 
+            'speaker_character': None,
             'output':"",
             'user_intent':"",
             'context': [],
+            'memory': memory,
             'event_complete': False,
             'pending_user_input': ""
         })

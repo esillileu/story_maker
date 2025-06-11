@@ -47,6 +47,7 @@ class NarrativeState(BaseModel):
     output:str = ""
     user_intent:str = ""
     context: List[Dict] = []
+    memory: List[str] = []
     event_complete: bool = False
     pending_user_input: str = ""
     
@@ -61,6 +62,11 @@ class NarrativeState(BaseModel):
 
     def add_user_context(self, content:str)->None:
         self.add_context('user', content)
+
+    def add_memory(self, text: str) -> None:
+        mem = self.memory.copy()
+        mem.append(text)
+        return self.model_copy(update={'memory': mem})
 
 class SituationPresenterOutput(BaseModel):
     situation: str
