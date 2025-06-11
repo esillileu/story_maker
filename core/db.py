@@ -90,9 +90,21 @@ def get_memory(timeline_id: str) -> list:
         return doc.get("memory", [])
     return []
 
+def get_event_context(event_id: str) -> list:
+    event = event_collection.find_one({"event_id": event_id})
+    if event:
+        return event.get("context", [])
+    return []
+
 def list_timelines():
     result = timeline_collection.find({}, {"timeline_id": 1})
     return [doc["timeline_id"] for doc in result]
+
+def get_timeline_events(timeline_id: str) -> list:
+    timeline = timeline_collection.find_one({"timeline_id": timeline_id})
+    if timeline:
+        return timeline.get("timeline", [])
+    return []
 
 def get_stories(event_list):
     summaries = []
