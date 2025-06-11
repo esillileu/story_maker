@@ -26,13 +26,16 @@ from core.db import (
     store_memory,
     get_characters_name
 )
+from core.knowledge import update_knowledge, related_memory
 
 @log.instrument
 def present_situation(state: NarrativeState) -> NarrativeState:
+    query = f"{state.event} {state.story}"
+    mem = related_memory(query, state.memory)
+    state_for_prompt = state.model_copy(update={"memory": mem})
     prompt = str(
-        state.model_dump_json()
+        state_for_prompt.model_dump_json()
         + '\n name_list:' + str(get_characters_name())
-        + '\n memory:' + str(state.memory)
     )
     result = situation_presenter.run_sync(prompt).output
     situation_id = get_next_situation_id()
@@ -84,11 +87,14 @@ def npc_flow(state: NarrativeState) -> NarrativeState:
         })
         store_character(character)
 
+    context_text = " ".join([c.get("content", "") for c in state.context])
+    mem = related_memory(context_text, state.memory)
+    temp_state = state.model_copy(update={"memory": mem})
     while True:
-        output = character_actor(character).run_sync(str(state.model_dump_json())).output
+        output = character_actor(character).run_sync(str(temp_state.model_dump_json())).output
         in1 = str(character.model_dump_json())
         in2 = str(state.context)
-        if consistency_checker.run_sync(f"캐릭터:{in1}\n컨텍스트:{in2}\n대사:{output}"): 
+        if consistency_checker.run_sync(f"캐릭터:{in1}\n컨텍스트:{in2}\n대사:{output}"):
             break
     return state.model_copy(update={"output": output,  
                             "context": state.context+[{"role":"assistant", 'content':output}], 
@@ -119,6 +125,9 @@ def wrapup(state: NarrativeState) -> NarrativeState:
     mem_input = {"event": event, "story": story, "prev_memory": state.memory}
     memory = memory_extractor.run_sync(str(mem_input)).output
     state = state.add_memory(memory)
+    knowledges = update_knowledge(event, state.characters)
+    for k in knowledges:
+        state = state.add_memory(k)
 
     store_event(Event(
         event_id=state.event_id,
@@ -134,7 +143,6 @@ def wrapup(state: NarrativeState) -> NarrativeState:
     store_memory(state.story_id, state.memory)
     next_event_id = get_next_event_id()
     next_story_id = get_next_timeline_id()
-    # update_knowledge(knowledges)
     # flags_updater(flags)
 
     return state.model_copy(update = {        
