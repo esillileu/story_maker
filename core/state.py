@@ -1,16 +1,54 @@
 from typing import Literal, List, Dict
 from pydantic import BaseModel
 
+class Character(BaseModel):
+    name:str = "" 
+    generated_at:str = ""
+    persona:str = ""
+    instructions:str =  ""
+    knowledge_groups:List[str] = []
+
+class Event(BaseModel):
+    event_id:str = "E_000"
+    situation_id:str  = "S_000",
+    situation_summary:str='',
+    event_summary:str='', 
+    story_summary:str=''
+
+class Situation(BaseModel):
+    situation_id:str = 'S_000'
+    situation:str = ""
+    characters:List[str] = []
+
+class Timeline(BaseModel):
+    timeline_id:str = "TL_000"
+    timeline:List[str] = []
+
+
 class NarrativeState(BaseModel):
-    event:str = ''
-    story:str =''
-    flags:List[str, any] = []
+    player_name:str = '수정'
+    
+    event:str = ""
+    event_id:str = "E_000"
+    event_list:List = ["E_000"]
+
+    story:str = ""
+    story_id:str = "TL_000"
+
     situation: str = ""
-    turn: Literal["npc", "user"] = "npc"
-    speaker: str = ""
+    situation_id:str=""
     characters: List = []
-    context: List[Dict[Literal['system', 'assistant', 'user'], str]] = []
+    
+    turn: Literal["npc", "user", ""] = "npc"
+    npc_count:int = 0
+
+    speaker: str = ""
+    speaker_character: Character|None = None
+    output:str = ""
+    user_intent:str = ""
+    context: List[Dict] = []
     event_complete: bool = False
+    
 
     def add_context(self, role:Literal['system', 'assistant', 'user'], content:str) -> None:
         context = self.context.copy()
@@ -22,3 +60,16 @@ class NarrativeState(BaseModel):
 
     def add_user_context(self, content:str)->None:
         self.add_context('user', content)
+
+class SituationPresenterOutput(BaseModel):
+    situation: str
+    characters: List[str]
+
+class CharacterMakerOutput(BaseModel):
+    persona:str = ""
+    instructions:str =  ""
+
+    
+class EventSummaryOutput(BaseModel):
+    event: str
+    story: List[str]

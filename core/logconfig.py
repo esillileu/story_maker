@@ -12,6 +12,9 @@ def load_logging_config():
     return config.get("tool", {}).get("logging", {})
 
 def config_logging():
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
     cfg = load_logging_config()
 
     log_level = getattr(logging, cfg.get("log_level", "INFO").upper(), logging.INFO)
@@ -42,6 +45,7 @@ def config_logging():
         handlers.append(stream_handler)
 
     logging.basicConfig(level=log_level, handlers=handlers)
+    logging.info('start logging')
 
 class log:
     def instrument(func):

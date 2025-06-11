@@ -26,7 +26,7 @@ def create_graph():
 
     builder.add_conditional_edges(
         "DecideSpeaker",
-        lambda state: state.speaker,
+        lambda state: state.turn,
         {
             "npc": "NPCFlow",
             "user": "UserFlow"
