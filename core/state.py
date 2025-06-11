@@ -48,6 +48,7 @@ class NarrativeState(BaseModel):
     user_intent:str = ""
     context: List[Dict] = []
     event_complete: bool = False
+    pending_user_input: str = ""
     
 
     def add_context(self, role:Literal['system', 'assistant', 'user'], content:str) -> None:
