@@ -134,7 +134,8 @@ def wrapup(state: NarrativeState) -> NarrativeState:
         situation_id=state.situation_id,
         situation_summary = state.situation,
         event_summary=event,
-        story_summary=story
+        story_summary=story,
+        context=state.context
     ))
     store_timeline(Timeline(
         timeline_id=state.story_id,

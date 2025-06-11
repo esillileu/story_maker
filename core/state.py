@@ -12,8 +12,9 @@ class Event(BaseModel):
     event_id:str = "E_000"
     situation_id:str  = "S_000",
     situation_summary:str='',
-    event_summary:str='', 
-    story_summary:str=''
+    event_summary:str='',
+    story_summary:str='',
+    context: List[Dict] = []
 
 class Situation(BaseModel):
     situation_id:str = 'S_000'

@@ -1,6 +1,13 @@
 import time
+import threading
 from flask import Flask, render_template, request, redirect, url_for, Response
-from core.db import get_latest_state, get_state, list_timelines
+from core.db import (
+    get_latest_state,
+    get_state,
+    list_timelines,
+    get_timeline_events,
+    get_event_context,
+)
 from core.nodes import present_situation, decide_speaker, npc_flow, user_flow, judge_event_end, wrapup
 from core.logconfig import config_logging
 
@@ -71,7 +78,14 @@ def select_timeline(tl):
     global graph_state, history
     graph_state = get_state(tl)
     history.clear()
-    advance_until_user()
+    events = get_timeline_events(tl)
+    for eid in events:
+        for msg in get_event_context(eid):
+            if isinstance(msg, dict):
+                history.append(msg.get("content", ""))
+            else:
+                history.append(str(msg))
+    threading.Thread(target=advance_until_user).start()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
