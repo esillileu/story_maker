@@ -1,0 +1,6 @@
+[tool.logging]
+log_dir = "logs"
+log_level = "DEBUG"
+log_format = "[{asctime}] [{levelname}] {name} - {message}"
+use_stream_handler = true
+use_file_handler = true
