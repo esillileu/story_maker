@@ -39,6 +39,7 @@ def _embed(text: str, dim: int = 1536) -> List[float]:
         client = openai.OpenAI(api_key=api_key)
         response = client.embeddings.create(model=embedding_model, input=text)
         return response.data[0].embedding
+
     except Exception as e:
         logging.error(f"OpenAI embedding failed: {e}")
         return _hash_embed(text, dim)
