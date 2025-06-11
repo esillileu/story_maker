@@ -1,6 +1,7 @@
 import time
 from flask import Flask, render_template, request, redirect, url_for, Response
 from core.db import get_latest_state, get_state, list_timelines
+from core.state import NarrativeState
 from core.nodes import present_situation, decide_speaker, npc_flow, user_flow, judge_event_end, wrapup
 from core.logconfig import config_logging
 
@@ -65,6 +66,14 @@ def send_message():
         graph_state = wrapup(graph_state)
     advance_until_user()
     return ('', 204)
+
+@app.get('/start')
+def start_timeline():
+    global graph_state, history
+    graph_state = NarrativeState()
+    history.clear()
+    advance_until_user()
+    return redirect(url_for('index'))
 
 @app.get('/timeline/<tl>')
 def select_timeline(tl):
