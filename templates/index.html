@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Story Maker</title>
+    <style>
+        body { display: flex; font-family: Arial, sans-serif; }
+        #sidebar { width: 200px; border-right: 1px solid #ccc; padding: 10px; }
+        #chat { flex: 1; padding: 10px; overflow-y: auto; }
+        #input-form { margin-top: 10px; }
+        .line { margin-bottom: 8px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3>Timelines</h3>
+        <ul>
+        {% for tl in timelines %}
+            <li><a href="{{ url_for('select_timeline', tl=tl) }}">{{ tl }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div id="chat">
+        {% for msg in history %}
+            <div class="line">{{ msg }}</div>
+            {% if '"' in msg %}<div class="line">&nbsp;</div>{% endif %}
+        {% endfor %}
+        <form id="input-form" method="post" action="{{ url_for('send_message') }}">
+            <input name="message" style="width:80%" {% if input_disabled %}disabled{% endif %}>
+            <button type="submit" {% if input_disabled %}disabled{% endif %}>Send</button>
+        </form>
+    </div>
+</body>
+</html>

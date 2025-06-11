@@ -89,11 +89,14 @@ def npc_flow(state: NarrativeState) -> NarrativeState:
 
 @log.instrument
 def user_flow(state: NarrativeState) -> NarrativeState:
-    user_input = input()
-    state = state.model_copy(update={"output": user_input})
+    if state.pending_user_input:
+        user_input = state.pending_user_input
+    else:
+        user_input = input()
+    state = state.model_copy(update={"output": user_input, "pending_user_input": ""})
     user_intent = intent_analyzer.run_sync(str(state.model_dump_json())).output
-    return state.model_copy(update={"output": user_input, "user_intent":user_intent, 
-                            "context": state.context+[{"role":"user", 'content':user_input}], 
+    return state.model_copy(update={"output": user_input, "user_intent":user_intent,
+                            "context": state.context+[{"role":"user", 'content':user_input}],
                             "npc_count":0})
 
 @log.instrument
@@ -139,7 +142,8 @@ def wrapup(state: NarrativeState) -> NarrativeState:
         'speaker_character': None, 
         'output':"", 
         'user_intent':"", 
-        'context': [], 
-        'event_complete': False
+        'context': [],
+        'event_complete': False,
+        'pending_user_input': ""
     })
 

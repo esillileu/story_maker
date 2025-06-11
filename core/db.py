@@ -76,10 +76,14 @@ def store_timeline(timeline:Timeline):
     log = str(insert_result).replace("\n", "")
     logging.info(f"DB_stored: {insert_result.inserted_id}: {log}")
 
+def list_timelines():
+    result = timeline_collection.find({}, {"timeline_id": 1})
+    return [doc["timeline_id"] for doc in result]
+
 def get_stories(event_list):
     summaries = []
     for event_id in event_list:
-        event = event_collection.find_one({'evnet_id':event_id})
+        event = event_collection.find_one({'event_id':event_id})
         if event != None:
             summaries.append(event['event_summary'])
     return summaries
@@ -150,10 +154,11 @@ def get_state(tl):
             
             'speaker': "", 
             'speaker_character': None, 
-            'output':"", 
-            'user_intent':"", 
-            'context': [], 
-            'event_complete': False
+            'output':"",
+            'user_intent':"",
+            'context': [],
+            'event_complete': False,
+            'pending_user_input': ""
         })
 
 def get_latest_state():
