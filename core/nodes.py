@@ -8,8 +8,9 @@ from core.agent import (
     consistency_checker,
     intent_analyzer, 
     event_summary, 
-    story_summary, 
-    end_judge, 
+    story_summary,
+    end_judge,
+    memory_extractor,
 
 )
 from core.db import (
@@ -21,13 +22,19 @@ from core.db import (
     get_next_timeline_id, 
     store_event, 
     store_situation, 
-    store_timeline, 
+    store_timeline,
+    store_memory,
     get_characters_name
 )
 
 @log.instrument
 def present_situation(state: NarrativeState) -> NarrativeState:
-    result = situation_presenter.run_sync(str(state.model_dump_json()+'\n name_list:'+str(get_characters_name()))).output
+    prompt = str(
+        state.model_dump_json()
+        + '\n name_list:' + str(get_characters_name())
+        + '\n memory:' + str(state.memory)
+    )
+    result = situation_presenter.run_sync(prompt).output
     situation_id = get_next_situation_id()
     store_situation(Situation(
         situation_id=situation_id, 
@@ -109,17 +116,22 @@ def wrapup(state: NarrativeState) -> NarrativeState:
     event = event_summary.run_sync(str(state.model_dump_json())).output
     story = story_summary.run_sync(str(get_stories(state.event_list)+[event])).output
 
+    mem_input = {"event": event, "story": story, "prev_memory": state.memory}
+    memory = memory_extractor.run_sync(str(mem_input)).output
+    state = state.add_memory(memory)
+
     store_event(Event(
-        event_id=state.event_id, 
-        situation_id=state.situation_id,         
-        situation_summary = state.situation, 
-        event_summary=event, 
+        event_id=state.event_id,
+        situation_id=state.situation_id,
+        situation_summary = state.situation,
+        event_summary=event,
         story_summary=story
     ))
     store_timeline(Timeline(
-        timeline_id=state.story_id, 
+        timeline_id=state.story_id,
         timeline=state.event_list+[state.event_id]
     ))
+    store_memory(state.story_id, state.memory)
     next_event_id = get_next_event_id()
     next_story_id = get_next_timeline_id()
     # update_knowledge(knowledges)
@@ -143,6 +155,7 @@ def wrapup(state: NarrativeState) -> NarrativeState:
         'output':"", 
         'user_intent':"", 
         'context': [],
+        'memory': state.memory,
         'event_complete': False,
         'pending_user_input': ""
     })

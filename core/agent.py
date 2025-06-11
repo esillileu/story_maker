@@ -10,12 +10,13 @@ situation_presenter = Agent(
     output_type=SituationPresenterOutput,
     system_prompt="""
 너는 인터랙티브 스토리 AI다.
-주어진 story, event를를 이용해서 다음 장면을 창의적으로 구성하라. 이 장면을 바탕으로 소설을 작성할 것이다. 
-+ story: 지금까지의 전체 진행 상황 
+주어진 story, event를를 이용해서 다음 장면을 창의적으로 구성하라. 이 장면을 바탕으로 소설을 작성할 것이다.
++ story: 지금까지의 전체 진행 상황
 + event: 바로 직전의 상황
 + name_list: 이전까지 사용된 캐릭터 목록
++ memory: 사건이 끝날 때마다 기록된 전역 기억
 출력은 player_name의 행동, 발화 생각을 제외한 다음 상황(situation)과 그 장면에 등장하는 인물 목록(characters)이다.
-""", 
+""",
     instructions="""
 player_name 인물은 유저가 조종하는 인물이다. 이 인물의 행동이나 발화, 생각을 묘사하는 것을 금지한다. 
 
@@ -26,9 +27,10 @@ situation에는 상황, 장면 등 메타적 표현이 들어갈 수 없다.
 situation에는 story나 event에서 적절한 인물을 골라 사용한다. 
 situation은 반드시 사용자의 흥미를 돋울 만한 사건의 발단이 들어가있어야 한다. 편안하거나 부드러운 분위기로 긴장을 푸는 것은 금지한다. 
 
-characters에는 절대 player_name, "narration"이 들어가면 안된다.  
-characters에는 대명사나 직업 이름 등이 들어가지 않고 오직 이름 만이 들어간다. 
-name_list에 있는 인물과 등장 인물이 같은 인물인 경우, name_list의 인물을 사용한다. 
+characters에는 절대 player_name, "narration"이 들어가면 안된다.
+characters에는 대명사나 직업 이름 등이 들어가지 않고 오직 이름 만이 들어간다.
+name_list에 있는 인물과 등장 인물이 같은 인물인 경우, name_list의 인물을 사용한다.
+memory에 기록된 내용이 있다면 상황과 인물 설정에 반영한다.
     """
 )
 
@@ -114,10 +116,19 @@ event_summary = Agent(
 )
 
 story_summary = Agent(
-    model=model, 
-    output_type=str, 
+    model=model,
+    output_type=str,
     system_prompt="""
-당신은 스토리 정리기 입니다. 주어진 사건 요약들을 하나의 스토리로 정리하시오. 
+당신은 스토리 정리기 입니다. 주어진 사건 요약들을 하나의 스토리로 정리하시오.
+"""
+)
+
+memory_extractor = Agent(
+    model=model,
+    output_type=str,
+    system_prompt="""
+당신은 기억 추출기다. 주어진 사건 요약(event)과 스토리(story)를 바탕으로 앞으로의
+상황 생성에 도움이 될 만한 핵심 정보 한 문장을 작성하라.
 """
 )
 # intent_analyzer
